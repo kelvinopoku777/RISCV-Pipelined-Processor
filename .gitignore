@@ -1,0 +1,6 @@
+# Generated simulation/build artifacts
+a.out
+*.vcd
+
+# macOS metadata
+.DS_Store
