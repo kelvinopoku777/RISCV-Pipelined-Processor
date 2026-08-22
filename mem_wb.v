@@ -3,6 +3,7 @@ module mem_wb (
     output reg [31:0] instruction_out,
     input clk,
     input rst_n,
+    input stall,
     input [31:0] pc_in,
     output reg [31:0] pc_out,
     // control signals
@@ -31,8 +32,16 @@ module mem_wb (
             alu_out_out <= 32'h0;
             mem_read_data_out <= 32'h0;
             rd_out <= 5'h0;
-        end 
-        else begin
+        end else if (stall) begin
+            instruction_out <= instruction_out;
+            pc_out <= pc_out;
+            reg_write_out <= reg_write_out;
+            mem_to_reg_out <= mem_to_reg_out;
+            link_out <= link_out;
+            alu_out_out <= alu_out_out;
+            mem_read_data_out <= mem_read_data_out;
+            rd_out <= rd_out;
+        end else begin
             instruction_out <= instruction_in;
             pc_out <= pc_in;
             reg_write_out <= reg_write_in;

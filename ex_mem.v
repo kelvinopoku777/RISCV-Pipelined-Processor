@@ -3,6 +3,7 @@ module ex_mem (
     output reg [31:0] instruction_out,
     input clk,
     input rst_n,
+    input stall,
     input flush,
     // PC for control-flow and link write-back
     input [31:0] pc_in,
@@ -77,6 +78,23 @@ module ex_mem (
             branch_target_out <= 32'h0;
             jalr_target_out <= 32'h0;
             rd_out <= 5'h0;
+        end else if (stall) begin
+            instruction_out <= instruction_out;
+            pc_out <= pc_out;
+            alu_out_out <= alu_out_out;
+            reg_data2_out <= reg_data2_out;
+            zero_out <= zero_out;
+            reg_write_out <= reg_write_out;
+            mem_write_out <= mem_write_out;
+            mem_to_reg_out <= mem_to_reg_out;
+            branch_out <= branch_out;
+            bne_out <= bne_out;
+            jump_out <= jump_out;
+            link_out <= link_out;
+            jalr_out <= jalr_out;
+            branch_target_out <= branch_target_out;
+            jalr_target_out <= jalr_target_out;
+            rd_out <= rd_out;
         end else begin
             instruction_out <= instruction_in;
             pc_out <= pc_in;

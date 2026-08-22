@@ -13,8 +13,12 @@ module hazard_unit(
     input take_branch_mem,
     input jump_mem,
     input jalr_mem,
+    input cache_stall_mem,
     output reg stall_pc,
     output reg stall_if_id,
+    output reg stall_id_ex,
+    output reg stall_ex_mem,
+    output reg stall_mem_wb,
     output reg flush_if_id,
     output reg flush_id_ex,
     output reg flush_ex_mem
@@ -23,6 +27,9 @@ module hazard_unit(
         // Default to no stalls or flushes
         stall_pc = 0;
         stall_if_id = 0;
+        stall_id_ex = 0;
+        stall_ex_mem = 0;
+        stall_mem_wb = 0;
         flush_if_id = 0;
         flush_id_ex = 0;
         flush_ex_mem = 0;
@@ -41,6 +48,13 @@ module hazard_unit(
             stall_pc = 1;
             stall_if_id = 1;
             flush_id_ex = 1;
+        end else if (cache_stall_mem) begin
+            // Hold the whole pipeline while a blocking data-cache miss refills.
+            stall_pc = 1;
+            stall_if_id = 1;
+            stall_id_ex = 1;
+            stall_ex_mem = 1;
+            stall_mem_wb = 1;
         end 
     end
     

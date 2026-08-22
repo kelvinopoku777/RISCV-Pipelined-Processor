@@ -29,6 +29,9 @@ module testbench;
         $display("Instruction = %h", dut.instruction_if);
         $display("x10/a0 = %h", dut.reg_file_inst.registers[10]);
         $display("data_mem[0] = %h", dut.data_mem_inst.memory[0]);
+        $display("cache hits = %0d", dut.data_cache_inst.hit_count);
+        $display("cache misses = %0d", dut.data_cache_inst.miss_count);
+        $display("last cache hit signal = %b", dut.cache_hit_mem);
 
         $finish;
     end

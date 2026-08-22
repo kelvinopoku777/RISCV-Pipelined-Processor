@@ -3,6 +3,7 @@ module id_ex (
     output reg [31:0] instruction_out,
     input clk,
     input rst_n,
+    input stall,
     input flush,
     input [31:0] pc_in,
     output reg [31:0] pc_out,
@@ -95,6 +96,28 @@ always @(posedge clk or negedge rst_n) begin
         rd_out <= 5'h0;
         rs1_out <= 5'h0;
         rs2_out <= 5'h0;
+    end else if (stall) begin
+        instruction_out <= instruction_out;
+        pc_out <= pc_out;
+        reg_data1_out <= reg_data1_out;
+        reg_data2_out <= reg_data2_out;
+        immediate_out <= immediate_out;
+        reg_write_out <= reg_write_out;
+        alu_op_out <= alu_op_out;
+        mem_write_out <= mem_write_out;
+        mem_to_reg_out <= mem_to_reg_out;
+        alu_src_out <= alu_src_out;
+        branch_out <= branch_out;
+        bne_out <= bne_out;
+        jump_out <= jump_out;
+        link_out <= link_out;
+        jalr_out <= jalr_out;
+        opcode_out <= opcode_out;
+        func3_out <= func3_out;
+        func7_out <= func7_out;
+        rd_out <= rd_out;
+        rs1_out <= rs1_out;
+        rs2_out <= rs2_out;
     end else begin
         // instruction and PC
         instruction_out <= instruction_in;

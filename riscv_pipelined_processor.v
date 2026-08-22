@@ -114,6 +114,9 @@ module riscv_pipelined_processor (
     // Hazard management
     wire stall_pc;
     wire stall_if_id;
+    wire stall_id_ex;
+    wire stall_ex_mem;
+    wire stall_mem_wb;
     wire flush_if_id;
     wire flush_id_ex;
     wire flush_ex_mem;
@@ -158,6 +161,7 @@ module riscv_pipelined_processor (
         .instruction_out(instruction_ex),
         .clk(clk),
         .rst_n(rst_n),
+        .stall(stall_id_ex),
         .flush(flush_id_ex),
         .pc_in(current_pc_id),
         .pc_out(current_pc_ex),
@@ -323,6 +327,7 @@ module riscv_pipelined_processor (
         .instruction_out(instruction_mem),
         .clk(clk),
         .rst_n(rst_n),
+        .stall(stall_ex_mem),
         .flush(flush_ex_mem),
         .pc_in(current_pc_ex),
         .pc_out(current_pc_mem),
@@ -357,14 +362,47 @@ module riscv_pipelined_processor (
     );
 
     // MEMORY ACCESS STAGE
-    // signals for data memory
+    // signals for data cache and backing data memory
+    wire [31:0] cache_read_data_mem;
+    wire cache_hit_mem;
+    wire [31:0] cache_hit_count_mem;
+    wire [31:0] cache_miss_count_mem;
+    wire cache_ready_mem;
+    wire cache_mem_read_en_mem;
+    wire [31:0] cache_backing_address_mem;
+    wire [31:0] cache_backing_write_data_mem;
+    wire cache_backing_write_en_mem;
     wire [31:0] mem_read_data_mem;
+    wire mem_ready_mem;
 
-    data_mem data_mem_inst (
-        .mem_address(alu_out_mem),
-        .write_data(reg_data2_mem),
-        .mem_write(mem_write_mem),
+    data_cache data_cache_inst (
+        .clk(clk),
+        .rst_n(rst_n),
+        .cpu_read_en(mem_to_reg_mem),
+        .cpu_write_en(mem_write_mem),
+        .cpu_address(alu_out_mem),
+        .cpu_write_data(reg_data2_mem),
+        .mem_read_data(mem_read_data_mem),
+        .mem_ready(mem_ready_mem),
+        .cpu_read_data(cache_read_data_mem),
+        .cpu_ready(cache_ready_mem),
+        .cache_hit(cache_hit_mem),
+        .hit_count(cache_hit_count_mem),
+        .miss_count(cache_miss_count_mem),
+        .mem_read_en(cache_mem_read_en_mem),
+        .mem_write_en(cache_backing_write_en_mem),
+        .mem_address(cache_backing_address_mem),
+        .mem_write_data(cache_backing_write_data_mem)
+    );
+
+    data_mem_slow data_mem_inst (
+        .rst_n(rst_n),
+        .mem_read_en(cache_mem_read_en_mem),
+        .mem_write_en(cache_backing_write_en_mem),
+        .mem_address(cache_backing_address_mem),
+        .write_data(cache_backing_write_data_mem),
         .read_data(mem_read_data_mem),
+        .mem_ready(mem_ready_mem),
         .clk(clk)
     );
 
@@ -387,8 +425,12 @@ module riscv_pipelined_processor (
         .take_branch_mem(take_branch_mem),
         .jump_mem(jump_mem),
         .jalr_mem(jalr_mem),
+        .cache_stall_mem(~cache_ready_mem),
         .stall_pc(stall_pc),
         .stall_if_id(stall_if_id),
+        .stall_id_ex(stall_id_ex),
+        .stall_ex_mem(stall_ex_mem),
+        .stall_mem_wb(stall_mem_wb),
         .flush_if_id(flush_if_id),
         .flush_id_ex(flush_id_ex),
         .flush_ex_mem(flush_ex_mem)
@@ -421,6 +463,7 @@ module riscv_pipelined_processor (
         .instruction_out(instruction_wb),
         .clk(clk),
         .rst_n(rst_n),
+        .stall(stall_mem_wb),
         .pc_in(current_pc_mem),
         .pc_out(current_pc_wb),
         .rd_in(rd_mem),
@@ -433,7 +476,7 @@ module riscv_pipelined_processor (
         .link_out(link_wb),
         .alu_out_in(alu_out_mem),
         .alu_out_out(alu_out_wb),
-        .mem_read_data_in(mem_read_data_mem),
+        .mem_read_data_in(cache_read_data_mem),
         .mem_read_data_out(mem_read_data_wb)
     );
 

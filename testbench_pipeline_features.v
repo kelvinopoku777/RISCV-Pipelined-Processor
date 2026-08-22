@@ -38,14 +38,16 @@ module testbench_pipeline_features;
 
         // Test 1: load-use stall plus EX/MEM and MEM/WB forwarding.
         clear_state();
-        dut.data_mem_inst.memory[0] = 32'd11;
         dut.instr_mem_inst.rom[0] = 32'h00002283; // lw x5, 0(x0)
         dut.instr_mem_inst.rom[1] = 32'h00528333; // add x6, x5, x5
         dut.instr_mem_inst.rom[2] = 32'h005303b3; // add x7, x6, x5
         dut.instr_mem_inst.rom[3] = 32'h0000007f; // halt
 
         reset_dut();
-        #120;
+        dut.data_mem_inst.memory[0] = 32'd11;
+        // The blocking cache now waits for the slow backing memory refill,
+        // so give the dependent forwarded result enough time to reach WB.
+        #140;
 
         if (dut.reg_file_inst.registers[6] !== 32'd22 ||
             dut.reg_file_inst.registers[7] !== 32'd33) begin
